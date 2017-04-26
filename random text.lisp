@@ -1,0 +1,1 @@
+Hammerbacher: "Most people in my generation are trying to find a way to get people to click ads"

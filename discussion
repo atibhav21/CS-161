@@ -1,0 +1,8 @@
+3 functions in a SE using LISP
+
+- Initial State Function : returns an initial state
+- Final State test function : t if q belongs to final, nil otherwise
+- Successor function: (q, a) ------> qo
+
+Towers of Hanoi
+

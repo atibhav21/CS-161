@@ -1,0 +1,30 @@
+1.
+In the first problem, using the PAD function with large numbers results in an 
+extremely slow computation. This is because the algorithm is running in O(2^n)
+time. Hence, for smaller numbers, on modern computers, the computation is 
+pretty fast. However, as we try it out for larger numbers, the computation time 
+as well as space increases exponentially. Also, my implementation of PADS is
+not tail recursive, which makes the program run slower.
+
+PAD(0)  = 1
+PAD(1)  = 1
+PAD(2)  = 1
+PAD(3)  = 2
+PAD(4)  = 2
+PAD(5)  = 3
+PAD(6)  = 4
+PAD(7)  = 5
+PAD(8)  = 7
+PAD(9)  = 9
+PAD(10) = 12
+
+
+2.
+The relationship between PAD and SUMS is (PAD n) = (SUMS n) + 1
+
+This is because at every recursive step, the function makes two recursive 
+calls. For each of these recursive steps, SUMS(n-2) and SUMS(n-3) the number
+returned is 1 less than each of PAD(n-2) and PAD(n-3) respectively. This 
+result can be proved by induction. At this stage, our SUMS would be 2 less 
+than the PAD(n), but since we add these two together, our SUMS(n) is always 
+only 1 less than the PAD(n).
