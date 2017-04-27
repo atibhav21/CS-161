@@ -104,7 +104,7 @@
 ; returns a list of each state that can be reached by applying legal operators
 ; to the current state.
 (defun SUCC-FN (S)
-    (append (NEXT-STATE S 'h) (NEXT-STATE S 'b) (NEXT-STATE S 'd) (NEXT-STATE S 'p))
+    (append (NEXT-STATE S 'b) (NEXT-STATE S 'h) (NEXT-STATE S 'd) (NEXT-STATE S 'p) )
     ; find each of the possible next states and append them to form a list of possible states
     ; is a list of lists, since the each state itself is a list
 )
@@ -131,7 +131,21 @@
 ; complete path from the initial state to the goal state. Otherwise, it returns
 ; NIL.
 (defun MULT-DFS (STATES PATH)
-    T)
+    (cond
+        ((null STATES) NIL) ; no more states to explore
+        ((FINAL-STATE (first STATES)) (append PATH (list (first STATES)))) ; reached final state so return the path used to reach it
+        ((ON-PATH (first STATES) PATH) (MULT-DFS (rest STATES) PATH)) ; already checked this state before so skip this
+        (T 
+            (let ((getPath (DFS (first STATES) PATH ) ))
+                (cond 
+                    ((null getPath) (MULT-DFS (rest STATES) PATH))
+                    (T getPath)
+                )
+            )
+        ) ; go deeper in the search tree
+    )
+)
+
 
 ; DFS does a depth first search from a given state to the goal state. It
 ; takes two arguments: a state (S) and the path from the initial state to S
@@ -142,4 +156,8 @@
 ; ensuring that the depth-first search does not revisit a node already on the
 ; search path.
 (defun  DFS (S PATH)
-    T)
+    (cond
+        ((FINAL-STATE S) PATH)
+        (T (MULT-DFS (SUCC-FN S) (append PATH (list S))))
+    )
+)
