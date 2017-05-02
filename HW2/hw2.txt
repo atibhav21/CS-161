@@ -1,0 +1,32 @@
+Atibhav Mittal
+804598987
+CS 161, Project 2
+Worked with: Patrick Deshpande
+
+BFS: These are the values that my implementation of BFS returns
+
+> (BFS '(ROOT))
+(ROOT)
+> (BFS '((((L E) F) T)))
+(T F L E)
+> (BFS '((R (I (G (H T))))))
+(R I G H T)
+> (BFS '(((A (B)) C (D))))
+(C A D B)
+> (BFS '((T (H R E) E)))
+(T E H R E)
+> (BFS '((A ((C ((E) D)) B))))
+(A B C D E)
+
+For the Search tree problem, here are some of the test cases I used to test my code:
+
+> (DFS '(nil nil nil nil) nil)
+((NIL NIL NIL NIL) (T T NIL NIL) (NIL T NIL NIL) (T T T NIL) (NIL NIL T NIL)
+ (T NIL T T) (NIL NIL T T) (T T T T))
+
+> (DFS '(nil nil t t) nil)
+((NIL NIL T T) (T T T T))
+
+> (DFS '(nil t nil nil) nil)
+((NIL T NIL NIL) (T T T NIL) (NIL NIL T NIL) (T NIL T T) (NIL NIL T T)
+ (T T T T))

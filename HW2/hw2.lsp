@@ -2,6 +2,9 @@
 ; Homework 2 ;
 ;;;;;;;;;;;;;;
 
+; Atibhav Mittal
+; Worked with: Patrick Deshpande
+
 ;;;;;;;;;;;;;;
 ; Question 1 ;
 ;;;;;;;;;;;;;;
@@ -133,16 +136,15 @@
 (defun MULT-DFS (STATES PATH)
     (cond
         ((null STATES) NIL) ; no more states to explore
-        ((FINAL-STATE (first STATES)) (append PATH (list (first STATES)))) ; reached final state so return the path used to reach it
         ((ON-PATH (first STATES) PATH) (MULT-DFS (rest STATES) PATH)) ; already checked this state before so skip this
         (T 
-            (let ((getPath (DFS (first STATES) PATH ) ))
+            (let ((getPath (DFS (first STATES) PATH ) )) ; store the solution of exploring the current state using DFS of this node
                 (cond 
-                    ((null getPath) (MULT-DFS (rest STATES) PATH))
-                    (T getPath)
+                    ((null getPath) (MULT-DFS (rest STATES) PATH)) ; no solution found so check the rest of the states
+                    (T getPath) ; solution found!!! so return solution
                 )
             )
-        ) ; go deeper in the search tree
+        ) 
     )
 )
 
@@ -157,7 +159,7 @@
 ; search path.
 (defun  DFS (S PATH)
     (cond
-        ((FINAL-STATE S) PATH)
-        (T (MULT-DFS (SUCC-FN S) (append PATH (list S))))
+        ((FINAL-STATE S) (append PATH (list S))) ; final state found so add to path and return this list of states
+        (T (MULT-DFS (SUCC-FN S) (append PATH (list S)))) ; not the final state so explore deeper in the search tree
     )
 )
