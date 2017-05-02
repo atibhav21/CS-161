@@ -274,9 +274,16 @@
 
 ; EXERCISE: Modify this function to compute the 
 ; number of misplaced boxes in s.
-;
+; Is this heuristic admissible?
+; TODO:
 (defun h1 (s)
+  (cond 
+  		((null s) 0)
+  		((null (first s)) (h1 (rest s))) ; no more left in current row so move to next row
+  		((isBox (first (first s))) (+ 1 (h1 (cons (rest (first s)) (rest s))))) ; is box so add one
+  		(T (h1 (cons (rest (first s)) (rest s)))) ; not just a box so move to next item in row
   )
+)
 
 ; EXERCISE: Change the name of this function to h<UID> where
 ; <UID> is your actual student ID number. Then, modify this 
