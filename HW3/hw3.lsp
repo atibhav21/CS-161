@@ -199,11 +199,11 @@
 (defun get-square (s r c)
 	(cond
 		((null S) wall)
-		((> r 0) (get-state (rest s) (- r 1) c)) ; move to next row
+		((> r 0) (get-square (rest s) (- r 1) c)) ; move to next row
 		((= r 0) ; row found
 			(cond 
 				((= c 0) (first (first s))) ; found the element! 
-				((> c 0) (get-state (cons (rest (first s)) (rest s)) r (- c 1))) ; move to next column in same row
+				((> c 0) (get-square(cons (rest (first s)) (rest s)) r (- c 1))) ; move to next column in same row
 				(T wall) ; out of scope value
 			)
 		)
@@ -213,14 +213,15 @@
 
 ; Changes the item at (r,c) to v
 ; Indexed as: top left corner is (0,0)
+; returns updated state if valid row and column index, else returns nil
 (defun set-square(s r c v)
 	(cond 
-		((null S) wall)
+		((null S) nil)
 		((> r 0) (cons (first s) (set-square (rest s) (- r 1) c v)))
 		((= r 0)
 			(cond
-				((> c 0) )
-				((= c 0) )
+				((> c 0) (cons (cons (first (first s)) (first (set-square (cons (rest (first s)) (rest s)) r (- c 1) v)) ) (rest s)))
+				((= c 0) (cons (cons v (rest (first s))) (rest s)))
 				(T nil)
 			)
 		)
