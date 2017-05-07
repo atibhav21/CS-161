@@ -232,7 +232,38 @@
 ; tries a move in the direction of dir
 ; dir can be 'L 'R 'U 'D
 (defun try-move (s dir)
+	(let ((keeperPosition (getKeeperPosition s 0)))
+		(let ((kp_row (second keeperPosition)) (kp_col (first keeperPosition)))
+			(cond
+				((equal dir 'L) 
+					(cond 
+						((isBlank (get-square s kp_row (- kp_col 1))) 
+							; direction to move in is blank, so update player, box and position next to box
+							(set-square (set-square s kp_row kp_col blank) kp_row (- kp_col 1) keeper)
+						)
+						((and (isBox  (get-square s kp_row (- kp_col 1))) ; is a box
+								(or (isBlank (get-square s kp_row (- kp_col 2)))) (isStar (get-square s kp_row (- kp_col 2))))
+									; square is either blank or a goal state
+									; direction to move in has a box next to player, so update player, box and position next to box
 
+							(set-square (set-square (set-square s kp_row kp_col blank) kp_row (- kp_col 1) keeper) kp_row (- kp_col 2) box)
+						)
+									
+						(T nil)
+					)
+				)
+				((equal dir 'R) 
+
+				)
+				((equal dir 'U) 
+
+				)
+				((equal dir 'D) 
+
+				)
+			)
+		)
+	)
 )
 
 ; EXERCISE: Modify this function to return the list of 
