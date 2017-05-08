@@ -189,6 +189,7 @@
 ;
 (defun goal-test (s)
   (cond 
+  	((null S) T)
   	((check-row-for-completeness (first s)) (goal-test (rest s)))
   	(T nil)
   )
@@ -216,7 +217,7 @@
 ; returns updated state if valid row and column index, else returns nil
 (defun set-square(s r c v)
 	(cond 
-		((null S) nil)
+		((null s) nil)
 		((> r 0) (cons (first s) (set-square (rest s) (- r 1) c v)))
 		((= r 0)
 			(cond
@@ -225,7 +226,7 @@
 				(T nil)
 			)
 		)
-		(T nil) ; should never return nil!!!
+		(T (print "NULL STATE CAUSING ERROR")) ; should never return nil!!!
 	)
 )
 
@@ -235,6 +236,7 @@
 		(cond 
 			((isBlank currentStatus) keeper)
 			((isStar currentStatus) keeperstar)
+			(T nil)
 		)
 	)
 )
@@ -256,6 +258,7 @@
 		(cond
 			((isBlank currentStatus) box)
 			((isStar currentStatus) boxstar)
+			(T nil)
 		)
 	)
 )
@@ -349,6 +352,7 @@
 				)
 			)
 		)
+		(T nil)
 	)
 )
 
@@ -371,6 +375,7 @@
 				)
 			)
 		)
+		(T nil)
 	)
 )
 
@@ -422,7 +427,7 @@
 	 (x (car pos))
 	 (y (cadr pos))
 	 ;x and y are now the coordinate of the keeper in s.
-	 (result (list (try-move s 'U) (try-move s 'D) (try-move s 'L) (try-move s 'R)))
+	 (result (list (try-move s 'U) (try-move s 'R) (try-move s 'D) (try-move s 'L) ))
 	 )
     (cleanUpList result);end
    );end let
