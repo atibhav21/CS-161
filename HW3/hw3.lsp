@@ -247,20 +247,49 @@
 									; direction to move in has a box next to player, so update player, box and position next to box
 
 							(set-square (set-square (set-square s kp_row kp_col blank) kp_row (- kp_col 1) keeper) kp_row (- kp_col 2) box)
-						)
-									
+						)			
 						(T nil)
 					)
 				)
 				((equal dir 'R) 
+					(cond 
+						((isBlank (get-square s kp_row (+ kp_col 1))) 
+							; direction to move in is blank, so update player, box and position next to box
+							(set-square (set-square s kp_row kp_col blank) kp_row (+ kp_col 1) keeper)
+						)
+						((and (isBox  (get-square s kp_row (+ kp_col 1))) ; is a box
+								(or (isBlank (get-square s kp_row (+ kp_col 2)))) (isStar (get-square s kp_row (+ kp_col 2))))
+									; square is either blank or a goal state
+									; direction to move in has a box next to player, so update player, box and position next to box
 
+							(set-square (set-square (set-square s kp_row kp_col blank) kp_row (+ kp_col 1) keeper) kp_row (+ kp_col 2) box)
+						)			
+						(T nil)
+					)
 				)
 				((equal dir 'U) 
-
+					(cond
+						((isBlank (get-square s (- kp_row 1) kp_col))
+							(set-square (set-square s kp_row kp_col blank) (- kp_row 1) kp_col keeper)
+						)
+						((and (isBox (get-square s (- kp_row 1) kp_col)) 
+							(or (isBlank (get-square s (- kp_row 2) kp_col)) (isStar (get-square s (- kp_row 2) kp_col))))
+								(set-square (set-square (set-square s kp_row kp_col blank) (- kp_row 1) kp_col keeper) (- kp_row 2) kp_col box)
+						)
+					)
 				)
 				((equal dir 'D) 
-
+					(cond
+						((isBlank (get-square s (+ kp_row 1) kp_col))
+							(set-square (set-square s kp_row kp_col blank) (+ kp_row 1) kp_col keeper)
+						)
+						((and (isBox (get-square s (+ kp_row 1) kp_col)) 
+							(or (isBlank (get-square s (+ kp_row 2) kp_col)) (isStar (get-square s (+ kp_row 2) kp_col))))
+								(set-square (set-square (set-square s kp_row kp_col blank) (+ kp_row 1) kp_col keeper) (+ kp_row 2) kp_col box)
+						)
+					)
 				)
+				(T nil)
 			)
 		)
 	)
