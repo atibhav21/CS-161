@@ -229,22 +229,70 @@
 	)
 )
 
+; update the new position of the keeper
+(defun current-keeper-move (s kp_row kp_col)
+	(let ((currentStatus (get-square s kp_row kp_col)))
+		(cond 
+			((isBlank currentStatus) keeper)
+			((isStar currentStatus) keeperstar)
+		)
+	)
+)
+
+; update the current position of the keeper after moving the keeper
+(defun after-keeper-move (s kp_row kp_col)
+	(let ((currentStatus (get-square s kp_row kp_col)))
+		(cond
+			((isKeeper currentStatus) blank)
+			((isKeeperStar currentStatus) star)
+			(T nil)
+		)
+	)
+)
+
+; update the new position of the box
+(defun current-box-move (s r c)
+	(let ((currentStatus (get-square s r c)))
+		(cond
+			((isBlank currentStatus) box)
+			((isStar currentStatus) boxstar)
+		)
+	)
+)
+
+; update the current position of the box after moving the box
+(defun after-box-move (s r c)
+	(let ((currentStatus (get-square s r c)))
+		(cond
+			((isBox currentStatus) blank)
+			((isBoxStar currentStatus) star)
+			(T nil)
+		)
+	)
+)
+
+; move in the left direction
 (defun move-left (s kp_row kp_col)
 	(cond 
 		((isBlank (get-square s kp_row (- kp_col 1))) 
 			; direction to move in is blank, so update player, box and position next to box
-			(set-square (set-square s kp_row kp_col blank) kp_row (- kp_col 1) keeper)
+			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) kp_row (- kp_col 1) keeper)
 		)
 		((isStar (get-square s kp_row (- kp_col 1)))
 			; direction to move in has a star so update that to contain star and player
 			(set-square (set-square s kp_row kp_col blank) kp_row (+ kp_col 1) keeperstar)
 		)
-		((and (isBox  (get-square s kp_row (- kp_col 1))) ; is a box
+		((and   (or (isBox  (get-square s kp_row (- kp_col 1))) (isBoxStar (get-square s kp_row (- kp_col 1)))) ; is a box
 				(or (isBlank (get-square s kp_row (- kp_col 2))) (isStar (get-square s kp_row (- kp_col 2)))))
 					; square is either blank or a goal state
 					; direction to move in has a box next to player, so update player, box and position next to box
-
-			(set-square (set-square (set-square s kp_row kp_col blank) kp_row (- kp_col 1) keeper) kp_row (- kp_col 2) box)
+			(let ((moveBoxState (set-square s kp_row (- kp_col 2) (current-box-move s kp_row (- kp_col 2)))))
+				(let ((updatedBoxState (set-square moveBoxState kp_row (- kp_col 1) (after-box-move moveBoxState kp_row (- kp_col 1)))))
+					(let ((movePlayerState (set-square updatedBoxState kp_row (- kp_col 1) (current-keeper-move updatedBoxState kp_row (- kp_col 1)))))
+						(set-square movePlayerState kp_row kp_col (after-keeper-move movePlayerState kp_row kp_col))
+					)
+				)
+			)
 		)			
 		(T nil)
 	)
@@ -255,18 +303,25 @@
 	(cond 
 		((isBlank (get-square s kp_row (+ kp_col 1))) 
 			; direction to move in is blank, so update player, box and position next to box
-			(set-square (set-square s kp_row kp_col blank) kp_row (+ kp_col 1) keeper)
+			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) kp_row (+ kp_col 1) keeper)
 		)
 		((isStar (get-square s kp_row (+ kp_col 1)))
 			; direction to move in has a star so update that to contain star and player
 			(set-square (set-square s kp_row kp_col blank) kp_row (+ kp_col 1) keeperstar)
 		)
-		((and (isBox  (get-square s kp_row (+ kp_col 1))) ; is a box
+		((and   (or (isBox  (get-square s kp_row (+ kp_col 1))) (isBoxStar (get-square s kp_row (+ kp_col 1)))) ; is a box
 				(or (isBlank (get-square s kp_row (+ kp_col 2))) (isStar (get-square s kp_row (+ kp_col 2)))))
 					; square is either blank or a goal state
 					; direction to move in has a box next to player, so update player, box and position next to box
 
-			(set-square (set-square (set-square s kp_row kp_col blank) kp_row (+ kp_col 1) keeper) kp_row (+ kp_col 2) box)
+			;(set-square (set-square (set-square s kp_row kp_col blank) kp_row (+ kp_col 1) keeper) kp_row (+ kp_col 2) box)
+			(let ((moveBoxState (set-square s kp_row (+ kp_col 2) (current-box-move s kp_row (+ kp_col 2)))))
+				(let ((updatedBoxState (set-square moveBoxState kp_row (+ kp_col 1) (after-box-move moveBoxState kp_row (+ kp_col 1)))))
+					(let ((movePlayerState (set-square updatedBoxState kp_row (+ kp_col 1) (current-keeper-move updatedBoxState kp_row (+ kp_col 1)))))
+						(set-square movePlayerState kp_row kp_col (after-keeper-move movePlayerState kp_row kp_col))
+					)
+				)
+			)
 		)			
 		(T nil)
 	)
@@ -275,14 +330,22 @@
 (defun move-up (s kp_row kp_col)
 	(cond
 		((isBlank (get-square s (- kp_row 1) kp_col))
-			(set-square (set-square s kp_row kp_col blank) (- kp_row 1) kp_col keeper)
+			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) (- kp_row 1) kp_col keeper)
 		)
 		((isStar (get-square s (- kp_row 1) kp_col))
 			(set-square (set-square s kp_row kp_col blank) (- kp_row 1) kp_col keeperstar)
 		)
-		((and (isBox (get-square s (- kp_row 1) kp_col)) 
-			(or (isBlank (get-square s (- kp_row 2) kp_col)) (isStar (get-square s (- kp_row 2) kp_col))))
-				(set-square (set-square (set-square s kp_row kp_col blank) (- kp_row 1) kp_col keeper) (- kp_row 2) kp_col box)
+		((and (or (isBox (get-square s (- kp_row 1) kp_col)) (isBoxStar (get-square s (- kp_row 1) kp_col)) )
+			  (or (isBlank (get-square s (- kp_row 2) kp_col)) (isStar (get-square s (- kp_row 2) kp_col))))
+				;(set-square (set-square (set-square s kp_row kp_col blank) (- kp_row 1) kp_col keeper) (- kp_row 2) kp_col box)
+
+			(let ((moveBoxState (set-square s (- kp_row 2) kp_col (current-box-move s (- kp_row 2) kp_col ))))
+				(let ((updatedBoxState (set-square moveBoxState (- kp_row 1) kp_col (after-box-move moveBoxState (- kp_row 1) kp_col ))))
+					(let ((movePlayerState (set-square updatedBoxState (- kp_row 1) kp_col  (current-keeper-move updatedBoxState (- kp_row 1) kp_col ))))
+						(set-square movePlayerState kp_row kp_col (after-keeper-move movePlayerState kp_row kp_col))
+					)
+				)
+			)
 		)
 	)
 )
@@ -290,14 +353,21 @@
 (defun move-down (s kp_row kp_col)
 	(cond
 		((isBlank (get-square s (+ kp_row 1) kp_col))
-			(set-square (set-square s kp_row kp_col blank) (+ kp_row 1) kp_col keeper)
+			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) (+ kp_row 1) kp_col keeper)
 		)
 		((isStar (get-square s (+ kp_row 1) kp_col))
 			(set-square (set-square s kp_row kp_col blank) (+ kp_row 1) kp_col keeperstar)
 		)
-		((and (isBox (get-square s (+ kp_row 1) kp_col)) 
-			(or (isBlank (get-square s (+ kp_row 2) kp_col)) (isStar (get-square s (+ kp_row 2) kp_col))))
-				(set-square (set-square (set-square s kp_row kp_col blank) (+ kp_row 1) kp_col keeper) (+ kp_row 2) kp_col box)
+		((and (or (isBox (get-square s (+ kp_row 1) kp_col)) (isBoxStar (get-square s (+ kp_row 1) kp_col)))
+			  (or (isBlank (get-square s (+ kp_row 2) kp_col)) (isStar (get-square s (+ kp_row 2) kp_col))))
+				;(set-square (set-square (set-square s kp_row kp_col blank) (+ kp_row 1) kp_col keeper) (+ kp_row 2) kp_col box)
+			(let ((moveBoxState (set-square s (+ kp_row 2) kp_col (current-box-move s (+ kp_row 2) kp_col ))))
+				(let ((updatedBoxState (set-square moveBoxState (+ kp_row 1) kp_col (after-box-move moveBoxState (+ kp_row 1) kp_col ))))
+					(let ((movePlayerState (set-square updatedBoxState (+ kp_row 1) kp_col  (current-keeper-move updatedBoxState (+ kp_row 1) kp_col ))))
+						(set-square movePlayerState kp_row kp_col (after-keeper-move movePlayerState kp_row kp_col))
+					)
+				)
+			)
 		)
 	)
 )
