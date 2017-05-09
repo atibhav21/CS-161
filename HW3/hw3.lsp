@@ -226,7 +226,7 @@
 				(T nil)
 			)
 		)
-		(T (print "NULL STATE CAUSING ERROR")) ; should never return nil!!!
+		(T nil) ; should never return nil!!!
 	)
 )
 
@@ -429,7 +429,7 @@
 ;
 (defun next-states (s)
 	;(progn
-	 ; (printstate s)
+	;  (printstate s)
 	  (let* ((pos (getKeeperPosition s 0))
 		 (x (car pos))
 		 (y (cadr pos))
