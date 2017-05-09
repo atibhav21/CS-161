@@ -275,7 +275,7 @@
 )
 
 ; move in the left direction
-(defun move-left (s kp_row kp_col)
+(defun move-left (s kp_row kp_col last_row last_col)
 	(cond 
 		((isBlank (get-square s kp_row (- kp_col 1))) 
 			; direction to move in is blank, so update player, box and position next to box
@@ -283,9 +283,10 @@
 		)
 		((isStar (get-square s kp_row (- kp_col 1)))
 			; direction to move in has a star so update that to contain star and player
-			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) kp_row (+ kp_col 1) keeperstar)
+			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) kp_row (- kp_col 1) keeperstar)
 		)
-		((and   (or (isBox  (get-square s kp_row (- kp_col 1))) (isBoxStar (get-square s kp_row (- kp_col 1)))) ; is a box
+		((and   (>= (- kp_col 2) 0)
+				(or (isBox  (get-square s kp_row (- kp_col 1))) (isBoxStar (get-square s kp_row (- kp_col 1)))) ; is a box
 				(or (isBlank (get-square s kp_row (- kp_col 2))) (isStar (get-square s kp_row (- kp_col 2)))))
 					; square is either blank or a goal state
 					; direction to move in has a box next to player, so update player, box and position next to box
@@ -302,18 +303,20 @@
 
 )
 
-(defun move-right (s kp_row kp_col)
+(defun move-right (s kp_row kp_col last_row last_col)
 	(cond 
 		((isBlank (get-square s kp_row (+ kp_col 1))) 
 			; direction to move in is blank, so update player, box and position next to box
 			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) kp_row (+ kp_col 1) keeper)
 		)
+
 		((isStar (get-square s kp_row (+ kp_col 1)))
 			; direction to move in has a star so update that to contain star and player
 			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) kp_row (+ kp_col 1) keeperstar)
 		)
-		((and   (or (isBox  (get-square s kp_row (+ kp_col 1))) (isBoxStar (get-square s kp_row (+ kp_col 1)))) ; is a box or a box and goal
-				(or (isBlank (get-square s kp_row (+ kp_col 2))) (isStar (get-square s kp_row (+ kp_col 2))))) ; blank state or goal state to move the box to
+		((and   (<= (+ kp_col 2) last_col)
+				(or (isBox  (get-square s kp_row (+ kp_col 1))) (isBoxStar (get-square s kp_row (+ kp_col 1)))) ; is a box or a box and goal
+				(or (isBlank (get-square s kp_row (+ kp_col 2))) (isStar (get-square s kp_row (+ kp_col 2)))) ) ; blank state or goal state to move the box to
 
 			;(set-square (set-square (set-square s kp_row kp_col blank) kp_row (+ kp_col 1) keeper) kp_row (+ kp_col 2) box)
 			; move the box and update the new position of box correctly
@@ -332,7 +335,7 @@
 	)
 )
 
-(defun move-up (s kp_row kp_col)
+(defun move-up (s kp_row kp_col last_row last_col)
 	(cond
 		((isBlank (get-square s (- kp_row 1) kp_col))
 			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) (- kp_row 1) kp_col keeper)
@@ -340,7 +343,8 @@
 		((isStar (get-square s (- kp_row 1) kp_col))
 			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) (- kp_row 1) kp_col keeperstar)
 		)
-		((and (or (isBox (get-square s (- kp_row 1) kp_col)) (isBoxStar (get-square s (- kp_row 1) kp_col)) )
+		((and (>= (- kp_row 2) 0)
+			  (or (isBox (get-square s (- kp_row 1) kp_col)) (isBoxStar (get-square s (- kp_row 1) kp_col)) )
 			  (or (isBlank (get-square s (- kp_row 2) kp_col)) (isStar (get-square s (- kp_row 2) kp_col))))
 				;(set-square (set-square (set-square s kp_row kp_col blank) (- kp_row 1) kp_col keeper) (- kp_row 2) kp_col box)
 
@@ -356,7 +360,7 @@
 	)
 )
 
-(defun move-down (s kp_row kp_col)
+(defun move-down (s kp_row kp_col last_row last_col)
 	(cond
 		((isBlank (get-square s (+ kp_row 1) kp_col))
 			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) (+ kp_row 1) kp_col keeper)
@@ -364,7 +368,8 @@
 		((isStar (get-square s (+ kp_row 1) kp_col))
 			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) (+ kp_row 1) kp_col keeperstar)
 		)
-		((and (or (isBox (get-square s (+ kp_row 1) kp_col)) (isBoxStar (get-square s (+ kp_row 1) kp_col)))
+		((and (>= (- kp_row 2) 0)
+			  (or (isBox (get-square s (+ kp_row 1) kp_col)) (isBoxStar (get-square s (+ kp_row 1) kp_col)))
 			  (or (isBlank (get-square s (+ kp_row 2) kp_col)) (isStar (get-square s (+ kp_row 2) kp_col))))
 				;(set-square (set-square (set-square s kp_row kp_col blank) (+ kp_row 1) kp_col keeper) (+ kp_row 2) kp_col box)
 			(let ((moveBoxState (set-square s (+ kp_row 2) kp_col (current-box-move s (+ kp_row 2) kp_col ))))
@@ -382,20 +387,20 @@
 ; tries a move in the direction of dir
 ; dir can be 'L 'R 'U 'D
 (defun try-move (s dir)
-	(let ((keeperPosition (getKeeperPosition s 0)))
+	(let ((keeperPosition (getKeeperPosition s 0)) (last_col (- (length (first s)) 1) ) (last_row (- (length s) 1)))
 		(let ((kp_row (second keeperPosition)) (kp_col (first keeperPosition)))
 			(cond
-				((equal dir 'L) 
-					(move-left s kp_row kp_col)
+				((and (equal dir 'L) (> kp_col 0))
+					(move-left s kp_row kp_col last_row last_col)
 				)
-				((equal dir 'R) 
-					(move-right s kp_row kp_col)
+				((and (equal dir 'R) (< kp_col last_col))
+					(move-right s kp_row kp_col last_row last_col)
 				)
-				((equal dir 'U) 
-					(move-up s kp_row kp_col)
+				((and (equal dir 'U) (> kp_row 0))
+					(move-up s kp_row kp_col last_row last_col)
 				)
-				((equal dir 'D) 
-					(move-down s kp_row kp_col)
+				((and (equal dir 'D) (< kp_row last_row))
+					(move-down s kp_row kp_col last_row last_col)
 				)
 				(T nil)
 			)
@@ -423,15 +428,19 @@
 ; 
 ;
 (defun next-states (s)
-  (let* ((pos (getKeeperPosition s 0))
-	 (x (car pos))
-	 (y (cadr pos))
-	 ;x and y are now the coordinate of the keeper in s.
-	 (result (list (try-move s 'U) (try-move s 'R) (try-move s 'D) (try-move s 'L) ))
-	 )
-    (cleanUpList result);end
-   );end let
-  );
+	;(progn
+	 ; (printstate s)
+	  (let* ((pos (getKeeperPosition s 0))
+		 (x (car pos))
+		 (y (cadr pos))
+		 ;x and y are now the coordinate of the keeper in s.
+		 (result (list (try-move s 'U) (try-move s 'R) (try-move s 'D) (try-move s 'L) ))
+		 )
+	    (cleanUpList result);end
+	   );end let
+
+	; )
+ );
 
 ; EXERCISE: Modify this function to compute the trivial 
 ; admissible heuristic.
