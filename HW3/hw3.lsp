@@ -368,7 +368,7 @@
 		((isStar (get-square s (+ kp_row 1) kp_col))
 			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) (+ kp_row 1) kp_col keeperstar)
 		)
-		((and (>= (- kp_row 2) 0)
+		((and (>= (+ kp_row 2) 0)
 			  (or (isBox (get-square s (+ kp_row 1) kp_col)) (isBoxStar (get-square s (+ kp_row 1) kp_col)))
 			  (or (isBlank (get-square s (+ kp_row 2) kp_col)) (isStar (get-square s (+ kp_row 2) kp_col))))
 				;(set-square (set-square (set-square s kp_row kp_col blank) (+ kp_row 1) kp_col keeper) (+ kp_row 2) kp_col box)
@@ -452,7 +452,7 @@
 ; EXERCISE: Modify this function to compute the 
 ; number of misplaced boxes in s.
 ; Is this heuristic admissible?
-; TODO:
+; Yes, the heuristic is admissible because we need at least the "number of boxes misplaced" steps to reach the goal state
 (defun h1 (s)
   (cond 
   		((null s) 0)
@@ -460,6 +460,60 @@
   		((isBox (first (first s))) (+ 1 (h1 (cons (rest (first s)) (rest s))))) ; is box so add one
   		(T (h1 (cons (rest (first s)) (rest s)))) ; not just a box so move to next item in row
   )
+)
+
+; return the positions of the item v in the current row
+; l is a list of lists, r is the current row, c is the current column
+; tail recursive
+(defun check-row-for-item (currentRow v r c l)
+	(cond 
+		((null currentRow) l)
+		((= v (first currentRow)) (check-row-for-item (rest currentRow) v r (+ c 1) (append l (list (list r c)))))
+		(T (check-row-for-item (rest currentRow) v r (+ c 1) l))
+	)
+)
+
+; heuristic helper function
+; return the positions of the items
+; tail recursive function
+(defun findItemPositions (s v currentRow currentList)
+	(cond
+		((null s) currentList)
+		(T (findItemPositions (rest s) v (+ currentRow 1) (append currentList (check-row-for-item (first s) v currentRow 0 nil))))
+	)
+)
+
+; returns manhattan distance between position 1 and position 2, both of the format (r c)
+(defun computeDistance (pos1 pos2)
+	(+ (abs (- (first pos1) (first pos2))) (abs (- (second pos1) (second pos2))))
+)
+
+; returns the smallest manhattan distance between a box and a goal state (not including boxes already in goal states)
+; box is position of the box in the format (r c)
+; goalList is the positions of the all the goals, of the format ((r c))
+; tail recursive
+(defun getManhattanDistance (box goalList currentMin)
+	(cond 
+		((null goalList) currentMin)
+		(T	(let ((distance (computeDistance box (first goalList))))
+				(cond 
+					((< distance currentMin) (getManhattanDistance box (rest goalList) distance))
+					(T (getManhattanDistance box (rest goalList) currentMin))
+				)
+			)
+		)
+	)	
+)
+
+(defun heuristicHelper (boxPositions goalPositions currentCost)
+	(cond 
+		((null boxPositions) currentCost)
+		((null goalPositions) currentCost)
+		(T (let ((firstDistance (computeDistance (first boxPositions) (first goalPositions))))
+				(heuristicHelper (rest boxPositions) goalPositions (+ currentCost (getManhattanDistance (first boxPositions) (rest goalPositions) firstDistance)))
+			)
+		)
+	)
 )
 
 ; EXERCISE: Change the name of this function to h<UID> where
@@ -472,8 +526,11 @@
 ; running time of a function call.
 ;
 (defun h804598987 (s)
- 
- )
+	(let ((boxPositions (findItemPositions s box 0 nil)) (goalPositions (findItemPositions s star 0 nil)))
+ 		(heuristicHelper boxPositions goalPositions 0)
+ 	)
+ 	
+)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
