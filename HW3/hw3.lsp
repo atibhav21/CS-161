@@ -174,8 +174,8 @@
 (defun check-row-for-completeness (r)
 	(cond
 		((null r) T)
-		((isBox (first r)) nil)
-		(T (check-row-for-completeness (rest r)))
+		((isBox (first r)) nil) ; contains a box so no goal state
+		(T (check-row-for-completeness (rest r))) ; otherwise check the rest of the row
 	)
 )
 
@@ -189,9 +189,9 @@
 ;
 (defun goal-test (s)
   (cond 
-  	((null S) T)
-  	((check-row-for-completeness (first s)) (goal-test (rest s)))
-  	(T nil)
+  	((null S) T) ; no more rows left to check
+  	((check-row-for-completeness (first s)) (goal-test (rest s))) ; if current row is complete, check next row
+  	(T nil) ; incomplete
   )
 );end defun
 
@@ -218,15 +218,15 @@
 (defun set-square(s r c v)
 	(cond 
 		((null s) nil)
-		((> r 0) (cons (first s) (set-square (rest s) (- r 1) c v)))
+		((> r 0) (cons (first s) (set-square (rest s) (- r 1) c v))) ; keep going to the next row
 		((= r 0)
 			(cond
-				((> c 0) (cons (cons (first (first s)) (first (set-square (cons (rest (first s)) (rest s)) r (- c 1) v)) ) (rest s)))
-				((= c 0) (cons (cons v (rest (first s))) (rest s)))
+				((> c 0) (cons (cons (first (first s)) (first (set-square (cons (rest (first s)) (rest s)) r (- c 1) v)) ) (rest s))) ; not the correct column so make a recursive call
+				((= c 0) (cons (cons v (rest (first s))) (rest s))) ; found the column so add v instead of c
 				(T nil)
 			)
 		)
-		(T nil) ; should never return nil!!!
+		(T nil) 
 	)
 )
 
@@ -234,8 +234,8 @@
 (defun current-keeper-move (s kp_row kp_col)
 	(let ((currentStatus (get-square s kp_row kp_col)))
 		(cond 
-			((isBlank currentStatus) keeper)
-			((isStar currentStatus) keeperstar)
+			((isBlank currentStatus) keeper) ; move the keeper into a blank state
+			((isStar currentStatus) keeperstar) ; move the keeper into a state with a goal, so update to keeperstar
 			(T nil)
 		)
 	)
@@ -245,8 +245,8 @@
 (defun after-keeper-move (s kp_row kp_col)
 	(let ((currentStatus (get-square s kp_row kp_col)))
 		(cond
-			((isKeeper currentStatus) blank)
-			((isKeeperStar currentStatus) star)
+			((isKeeper currentStatus) blank) ; only keeper so change to blank after keeper moves away
+			((isKeeperStar currentStatus) star) ; keeper star so change to star
 			(T nil)
 		)
 	)
@@ -256,8 +256,8 @@
 (defun current-box-move (s r c)
 	(let ((currentStatus (get-square s r c)))
 		(cond
-			((isBlank currentStatus) box)
-			((isStar currentStatus) boxstar)
+			((isBlank currentStatus) box) ; empty space so change it to only the box
+			((isStar currentStatus) boxstar) ; contains goal so update it to box + goal
 			(T nil)
 		)
 	)
@@ -267,8 +267,8 @@
 (defun after-box-move (s r c)
 	(let ((currentStatus (get-square s r c)))
 		(cond
-			((isBox currentStatus) blank)
-			((isBoxStar currentStatus) star)
+			((isBox currentStatus) blank) ; box only so change to blank after box moves
+			((isBoxStar currentStatus) star) ; box and star so change to star after box moves
 			(T nil)
 		)
 	)
@@ -285,14 +285,18 @@
 			; direction to move in has a star so update that to contain star and player
 			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) kp_row (- kp_col 1) keeperstar)
 		)
-		((and   (>= (- kp_col 2) 0)
+		((and   (>= (- kp_col 2) 0) ; can still move the box to the left
 				(or (isBox  (get-square s kp_row (- kp_col 1))) (isBoxStar (get-square s kp_row (- kp_col 1)))) ; is a box
 				(or (isBlank (get-square s kp_row (- kp_col 2))) (isStar (get-square s kp_row (- kp_col 2)))))
 					; square is either blank or a goal state
 					; direction to move in has a box next to player, so update player, box and position next to box
+			; move the box and update the new position of box correctly
 			(let ((moveBoxState (set-square s kp_row (- kp_col 2) (current-box-move s kp_row (- kp_col 2)))))
+				; use above state to modify the old position of the box correctly
 				(let ((updatedBoxState (set-square moveBoxState kp_row (- kp_col 1) (after-box-move moveBoxState kp_row (- kp_col 1)))))
+					; move player into the space vacated by moving the box
 					(let ((movePlayerState (set-square updatedBoxState kp_row (- kp_col 1) (current-keeper-move updatedBoxState kp_row (- kp_col 1)))))
+						; update the old position of the player
 						(set-square movePlayerState kp_row kp_col (after-keeper-move movePlayerState kp_row kp_col))
 					)
 				)
@@ -303,6 +307,7 @@
 
 )
 
+; move to the right
 (defun move-right (s kp_row kp_col last_row last_col)
 	(cond 
 		((isBlank (get-square s kp_row (+ kp_col 1))) 
@@ -335,22 +340,29 @@
 	)
 )
 
+; updates the state to move the keeper up
 (defun move-up (s kp_row kp_col last_row last_col)
 	(cond
+		; direction to move in is blank
 		((isBlank (get-square s (- kp_row 1) kp_col))
 			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) (- kp_row 1) kp_col keeper)
 		)
+		; direction move in is a goal, so update correctly
 		((isStar (get-square s (- kp_row 1) kp_col))
 			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) (- kp_row 1) kp_col keeperstar)
 		)
+		; move both the keeper and the box
 		((and (>= (- kp_row 2) 0)
 			  (or (isBox (get-square s (- kp_row 1) kp_col)) (isBoxStar (get-square s (- kp_row 1) kp_col)) )
 			  (or (isBlank (get-square s (- kp_row 2) kp_col)) (isStar (get-square s (- kp_row 2) kp_col))))
 				;(set-square (set-square (set-square s kp_row kp_col blank) (- kp_row 1) kp_col keeper) (- kp_row 2) kp_col box)
-
+			; move the box and update the new position of box correctly
 			(let ((moveBoxState (set-square s (- kp_row 2) kp_col (current-box-move s (- kp_row 2) kp_col ))))
+				; use above state to modify the old position of the box correctly
 				(let ((updatedBoxState (set-square moveBoxState (- kp_row 1) kp_col (after-box-move moveBoxState (- kp_row 1) kp_col ))))
+					; move player into the space vacated by moving the box
 					(let ((movePlayerState (set-square updatedBoxState (- kp_row 1) kp_col  (current-keeper-move updatedBoxState (- kp_row 1) kp_col ))))
+						; update the old position of the player
 						(set-square movePlayerState kp_row kp_col (after-keeper-move movePlayerState kp_row kp_col))
 					)
 				)
@@ -360,11 +372,14 @@
 	)
 )
 
+; updates the state to move the keeper and box (if its there) down
 (defun move-down (s kp_row kp_col last_row last_col)
 	(cond
+		; empty box to move into, so just move
 		((isBlank (get-square s (+ kp_row 1) kp_col))
 			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) (+ kp_row 1) kp_col keeper)
 		)
+		; move into the goal state
 		((isStar (get-square s (+ kp_row 1) kp_col))
 			(set-square (set-square s kp_row kp_col (after-keeper-move s kp_row kp_col)) (+ kp_row 1) kp_col keeperstar)
 		)
@@ -372,9 +387,13 @@
 			  (or (isBox (get-square s (+ kp_row 1) kp_col)) (isBoxStar (get-square s (+ kp_row 1) kp_col)))
 			  (or (isBlank (get-square s (+ kp_row 2) kp_col)) (isStar (get-square s (+ kp_row 2) kp_col))))
 				;(set-square (set-square (set-square s kp_row kp_col blank) (+ kp_row 1) kp_col keeper) (+ kp_row 2) kp_col box)
+			; move the box and update the new position of box correctly
 			(let ((moveBoxState (set-square s (+ kp_row 2) kp_col (current-box-move s (+ kp_row 2) kp_col ))))
+				; use above state to modify the old position of the box correctly
 				(let ((updatedBoxState (set-square moveBoxState (+ kp_row 1) kp_col (after-box-move moveBoxState (+ kp_row 1) kp_col ))))
+					; move player into the space vacated by moving the box
 					(let ((movePlayerState (set-square updatedBoxState (+ kp_row 1) kp_col  (current-keeper-move updatedBoxState (+ kp_row 1) kp_col ))))
+						; update the old position of the player
 						(set-square movePlayerState kp_row kp_col (after-keeper-move movePlayerState kp_row kp_col))
 					)
 				)
@@ -390,16 +409,16 @@
 	(let ((keeperPosition (getKeeperPosition s 0)) (last_col (- (length (first s)) 1) ) (last_row (- (length s) 1)))
 		(let ((kp_row (second keeperPosition)) (kp_col (first keeperPosition)))
 			(cond
-				((and (equal dir 'L) (> kp_col 0))
+				((and (equal dir 'L) (> kp_col 0)) ; move to the left
 					(move-left s kp_row kp_col last_row last_col)
 				)
-				((and (equal dir 'R) (< kp_col last_col))
+				((and (equal dir 'R) (< kp_col last_col)) ; move to right
 					(move-right s kp_row kp_col last_row last_col)
 				)
-				((and (equal dir 'U) (> kp_row 0))
-					(move-up s kp_row kp_col last_row last_col)
+				((and (equal dir 'U) (> kp_row 0)) ; move up
+					(move-up s kp_row kp_col last_row last_col) 
 				)
-				((and (equal dir 'D) (< kp_row last_row))
+				((and (equal dir 'D) (< kp_row last_row)) ; move down
 					(move-down s kp_row kp_col last_row last_col)
 				)
 				(T nil)
@@ -483,9 +502,18 @@
 	)
 )
 
+; trivial function to calculate absolute value
+(defun absoluteValue (x)
+	(cond
+		((= x 0) 0)
+		((< x 0) (- x))
+		(T x)
+	)
+)
+
 ; returns manhattan distance between position 1 and position 2, both of the format (r c)
 (defun computeDistance (pos1 pos2)
-	(+ (abs (- (first pos1) (first pos2))) (abs (- (second pos1) (second pos2))))
+	(+ (absoluteValue (- (first pos1) (first pos2))) (absoluteValue (- (second pos1) (second pos2))))
 )
 
 ; returns the smallest manhattan distance between a box and a goal state (not including boxes already in goal states)
@@ -505,6 +533,7 @@
 	)	
 )
 
+; used to add additional parameters
 (defun heuristicHelper (boxPositions goalPositions currentCost)
 	(cond 
 		((null boxPositions) currentCost)
@@ -524,7 +553,8 @@
 ; Objective: make A* solve problems as fast as possible.
 ; The Lisp 'time' function can be used to measure the 
 ; running time of a function call.
-;
+; computes the manhattan distance of each of the boxes from its closest goal state, 
+; TODO: and the manhattan distance of the keeper from each of the boxes
 (defun h804598987 (s)
 	(let ((boxPositions (findItemPositions s box 0 nil)) (goalPositions (findItemPositions s star 0 nil)))
  		(heuristicHelper boxPositions goalPositions 0)
