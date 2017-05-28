@@ -51,11 +51,8 @@
   )
 )
 
-; THIS FUNCTION IS WRONG
-; need to change this
-; pairs up the negation of the elements from c to k in pairs of 2
-; for instance, (pair-up-first 1 5) would return 
-; ((-1 -2) (-1 -3) (-1 -4) (-1 -5))
+; forms the clause which suggests that not (A is color c and A is color k)
+; k_max is the max k that is passed in
 (defun pair-up-first (n c k_max k sofar)
   (cond 
     ((= c k) sofar)
@@ -99,6 +96,8 @@
   (list (negate (list (node2var n1 c k) (node2var n2 c k)) NIL))
 )
 
+; helper function to make it tail recursive
+; returns a list of clauses
 (defun generate-edge-clauses-helper (n1 n2 c k sofar)
   (cond 
     ((> c k) sofar)
@@ -111,7 +110,6 @@
 ; "the nodes at both ends of edge e cannot have the same color from the set {1,2,...,k}."
 ;
 (defun generate-edge-clauses (e k)
-  ; has to be of the form (not A_green or not B_green)
   (generate-edge-clauses-helper (first e) (second e) 1 k NIL)
 )
 

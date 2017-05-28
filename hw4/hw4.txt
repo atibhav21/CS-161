@@ -1,0 +1,27 @@
+CS 161
+HW4
+Atibhav Mittal
+804598987
+
+Graph1.txt
+
+1. The graph in graph1.txt is unsatisfiable using 3 colors
+2. The graph in graph1.txt is satisfiable using 4 colors
+
+The above two solutions tell us that a 3-coloring of the graph doesn't exist but a 4-coloring of the graph exists.
+Yes, the solution based on the results of RSAT are:
+
+Color 1: Node 5, Node 7
+Color 2: Node 3, Node 6
+Color 3: Node 2, Node 4
+Color 4: Node 1
+
+Graph2.txt
+
+The graph in graph2.txt is unsatisfiable using 3 colors
+The graph in graph2.txt is unsatisfiable using 4 colors
+The graph in graph2.txt is unsatisfiable using 5 colors
+The graph in graph2.txt is unsatisfiable using 6 colors
+The graph in graph2.txt is unsatisfiable using 7 colors
+The graph is satisfiable using 8 colors
+
